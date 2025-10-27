@@ -1,189 +1,189 @@
-/**
- * @file singly_linked_list.c
- * @brief Singly Linked List Implementation in C
- *
- * This file provides a minimal implementation of a singly linked list
- * supporting insertion and removal of elements from both the head and tail.
- * Each node stores an integer value and a pointer to the next node.
- *
- * The API offers basic list manipulation utilities such as:
- *   - Creating nodes dynamically
- *   - Appending elements to the head or tail
- *   - Removing elements from the head or tail
- *   - Searching for an element
- *   - Printing and freeing the list
- *
- * Example usage:
- * @code
- * Node *list = NULL;
- * int value;
- *
- * list_append_head(&list, 1);
- * list_append_tail(&list, 2);
- * list_append_tail(&list, 3);
- *
- * list_print(list);   // List: 1 -> 2 -> 3 -> NULL
- *
- * if (list_pop_head(&list, &value))
- *     printf("Popped head: %d\n", value);
- *
- * Node *found = list_find(list, 3);
- * printf("Find 3: %s\n", found ? "found" : "not found");
- *
- * list_free(&list);
- * @endcode
- *
- * @note This implementation uses dynamic memory allocation (`malloc` / `free`).
- *       Always call @ref list_free to release allocated memory before exiting.
- */
+typedef struct node{
+    int val;
+    struct node *p_next;
+}node_t;
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
+typedef struct {
+    node_t *p_head;
+    node_t *p_tail;
+}sll_t;
 
-typedef struct Node {
-    int value;
-    struct Node *next;
-} Node;
-
-Node* node_create(int value)
+node_t *allocate_node(int val)
 {
-    Node *new_node = malloc(sizeof(Node));
-    if (!new_node)
-    {
-        fprintf(stderr, "Memory allocation failed\n");
-        exit(EXIT_FAILURE);
-    }
+    node_t *p_new_node = malloc(sizeof(node_t));
+    p_new_node->val = val;
+    p_new_node->next = NULL;
 
-    new_node->value = value;
-    new_node->next = NULL;
-    return new_node;
+    return p_new_node;
 }
 
-void list_append_head(Node **head, int value)
+void free_node(node_t *p_node)
 {
-    Node *new_node = node_create(value);
-    new_node->next = *head;
-    *head = new_node;
+    p_node->val = 0;
+    p_node->next = NULL;
+    free(p_node);
 }
 
-void list_append_tail(Node **head, int value)
+void list_init(sll_t *p_list, int val)
 {
-    Node *new_node = node_create(value);
-
-    if (*head == NULL)
-    {
-        *head = new_node;
-        return;
-    }
-
-    Node *curr = *head;
-    while (curr->next != NULL)
-    {
-        curr = curr->next;
-    }
-    curr->next = new_node;
+    node_t *p_new_node = allocate_node(val);
+    p_list->p_head = p_new_node;
+    p_list->p_tail = p_new_node;
 }
 
-bool list_pop_head(Node **head, int *out_value)
+void list_append_to_head(sll_t *p_list, int val)
 {
-    if (*head == NULL)
-        return false;
+    assert(p_list);
 
-    Node *temp = *head;
-    *out_value = temp->value;
-    *head = temp->next;
-    free(temp);
+    node_t *p_new_node = allocate_node(val);
 
-    return true;
-}
-
-bool list_pop_tail(Node **head, int *out_value)
-{
-    if (*head == NULL)
-        return false;
-
-    Node *curr = *head;
-    Node *prev = NULL;
-
-    while (curr->next != NULL)
+    if(p_list->p_head)
     {
-        prev = curr;
-        curr = curr->next;
-    }
-
-    *out_value = curr->value;
-
-    if (prev == NULL)
-    {
-        *head = NULL; // only one node
+        p_new_node->p_next = p_list->p_head;
     }
     else
     {
-        prev->next = NULL;
+        p_list->p_tail = p_new_node;
     }
 
-    free(curr);
-    return true;
+    p_list->p_head = p_new_node;
+    
 }
 
-Node* list_find(Node *head, int value)
+void list_append_to_tail(sll_t *p_list, int val)
 {
-    for (Node *curr = head; curr != NULL; curr = curr->next)
+    assert(p_list);
+
+    node_t *p_new_node = allocate_node(val);
+
+    if(p_list->p_tail)
     {
-        if (curr->value == value)
-            return curr;
+        p_list->p_tail->p_next = p_new_node;
     }
-    return NULL;
+    else
+    {
+        p_list->p_head = p_new_node;
+    }
+
+    p_list->p_tail = p_new_node;
 }
 
-void list_print(const Node *head)
+int list_pop_from_head(sll_t *p_list)
 {
-    printf("List:");
-    for (const Node *curr = head; curr != NULL; curr = curr->next)
+    assert(p_list);
+
+    res = INT_MIN;
+
+    if(p_list->p_head)
     {
-        printf(" %d ->", curr->value);
+        res = p_list->p_head->val;
+
+        node_t *p_temp = p_list->p_head->p_next;
+        free_node(p_list->p_head);
+        p_list->p_head = p_temp;
+
+        if(!p_temp)
+        {
+            p_list->tail = NULL;
+        }
     }
-    printf(" NULL\n");
+
+    return res;
 }
 
-void list_free(Node **head)
+int list_pop_from_tail(sll_t *p_list)
 {
-    Node *curr = *head;
-    while (curr)
+    assert(p_list);
+
+    res = INT_MIN;
+
+    if(p_list->p_tail)
     {
-        Node *next = curr->next;
-        free(curr);
-        curr = next;
+        res = p_list->p_tail->val;
+    
+        node_t *p_prev = NULL;
+        node_t *p_cur = p_list->p_head;
+
+        while(p_cur->p_next != NULL)
+        {
+            p_prev = p_cur;
+            p_cur = p_cur->p_next;
+        }
+
+        free_node(p_list->p_tail);
+        p_list->p_tail = p_prev;
+
+        if(!p_prev)
+        {
+            p_list->p_head = NULL;
+        }
+        else
+        {
+            p_prev->p_next = NULL;
+        }
     }
-    *head = NULL;
+
+    return res;
 }
 
+void print_list(const sll_t *p_list)
+{
+    printf("List: ");
+    node_t *p_cur = p_list->p_head;
+    while (p_cur)
+    {
+        printf("%d -> ", p_cur->val);
+        p_cur = p_cur->p_next;
+    }
+    printf("NULL\n");
+}
+
+
+// SLL API Usage
 int main(void)
 {
-    Node *list = NULL;
-    int value = 0;
+    sll_t list = {0};
 
-    list_append_head(&list, 2);
-    list_append_head(&list, 3);
-    list_append_head(&list, 4);
-    list_append_tail(&list, 5);
+    printf("Initializing list with value 10\n");
+    list_init(&list, 10);
+    print_list(&list);
 
-    list_print(list);
+    printf("\nAppending 20 to head\n");
+    list_append_to_head(&list, 20);
+    print_list(&list);
 
-    if (list_pop_head(&list, &value))
-        printf("Popped head: %d\n", value);
-    list_print(list);
+    printf("\nAppending 30 to tail\n");
+    list_append_to_tail(&list, 30);
+    print_list(&list);
 
-    if (list_pop_tail(&list, &value))
-        printf("Popped tail: %d\n", value);
-    list_print(list);
+    printf("\nAppending 40 to tail\n");
+    list_append_to_tail(&list, 40);
+    print_list(&list);
 
-    Node *found = list_find(list, 3);
-    printf("Find 3: %s\n", found ? "found" : "not found");
+    printf("\nPopping from head: ");
+    int val = list_pop_from_head(&list);
+    printf("%d\n", val);
+    print_list(&list);
 
-    list_free(&list);
-    list_print(list);
+    printf("\nPopping from tail: ");
+    val = list_pop_from_tail(&list);
+    printf("%d\n", val);
+    print_list(&list);
+
+    printf("\nPopping from tail again: ");
+    val = list_pop_from_tail(&list);
+    printf("%d\n", val);
+    print_list(&list);
+
+    printf("\nPopping from head: ");
+    val = list_pop_from_head(&list);
+    printf("%d\n", val);
+    print_list(&list);
+
+    printf("\nPopping from empty list (should return INT_MIN): ");
+    val = list_pop_from_tail(&list);
+    printf("%d\n", val);
+    print_list(&list);
 
     return 0;
 }
