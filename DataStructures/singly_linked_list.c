@@ -6,6 +6,7 @@ typedef struct node{
 typedef struct {
     node_t *p_head;
     node_t *p_tail;
+    size_t size;
 }sll_t;
 
 node_t *allocate_node(int val)
@@ -47,6 +48,7 @@ void list_append_to_head(sll_t *p_list, int val)
     }
 
     p_list->p_head = p_new_node;
+    p_list->size++;
     
 }
 
@@ -66,7 +68,83 @@ void list_append_to_tail(sll_t *p_list, int val)
     }
 
     p_list->p_tail = p_new_node;
+    p_list->size++;
 }
+
+bool list_append_to_nth(sll_t *p_list, int val, int n)
+{
+    assert(p_list);
+
+    if(!p_list->p_head || p_list->size < n || n == 0)
+    {
+        return false;
+    }
+
+    node_t *prev = NULL;
+    node_t *curr = p_list->p_head;
+    while(n)
+    {
+        prev = curr;
+        curr = curr->p_next;
+        n--;
+    }
+
+    node_t *new_node = allocate_node(val);
+    prev->p_next = new_node;
+    new_node->p_next = curr;
+    p_list->size++;
+
+    return true;
+}
+
+bool list_delete_nth(sll_t *p_list, int n, int *out_val)
+{
+    assert(p_list);
+
+    if (!p_list->p_head || n < 0)
+        return false;
+
+    node_t *prev = NULL;
+    node_t *curr = p_list->p_head;
+
+    // Special case: deleting the head node
+    if (n == 0) 
+    {
+        if (out_val) *out_val = curr->val;
+
+        p_list->p_head = curr->p_next;
+
+        // If it was the only node, update tail
+        if (p_list->p_tail == curr)
+            p_list->p_tail = NULL;
+
+        free_node(curr);
+        return true;
+    }
+
+    // Traverse to the nth node
+    for (int i = 0; i < n && curr != NULL; i++) 
+    {
+        prev = curr;
+        curr = curr->p_next;
+    }
+
+    if (!curr) return false; // Index out of bounds
+
+    if (out_val) *out_val = curr->val;
+
+    prev->p_next = curr->p_next;
+
+    // If deleting the tail
+    if (curr == p_list->p_tail)
+        p_list->p_tail = prev;
+
+    free_node(curr);
+    p_list->size--;
+
+    return true;
+}
+
 
 int list_pop_from_head(sll_t *p_list)
 {
@@ -86,6 +164,8 @@ int list_pop_from_head(sll_t *p_list)
         {
             p_list->tail = NULL;
         }
+
+        p_list->size--;
     }
 
     return res;
@@ -121,6 +201,8 @@ int list_pop_from_tail(sll_t *p_list)
         {
             p_prev->p_next = NULL;
         }
+
+        p_list->size--;
     }
 
     return res;
