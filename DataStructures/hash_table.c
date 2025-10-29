@@ -70,6 +70,32 @@ bool hash_table_delete_person(const person_t *p_person)
     return is_success;
 }
 
+person_t *hash_table_lookup(const char *p_name)
+{
+    for(int i = 0; i < TABLE_SIZE; i++)
+    {
+        if(hash_table[i] && strncmp(p_name, hash_table[i]->name, NAME_SIZE) == 0)
+        {
+            return hash_table[i];
+        }
+    }
+
+    return NULL;
+}
+
+int hash_table_find(const char *p_name)
+{    
+    for(int i = 0; i < TABLE_SIZE; i++)
+    {
+        if(hash_table[i] && strncmp(p_name, hash_table[i]->name, NAME_SIZE) == 0)
+        {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
 void hash_table_print(void)
 {
     printf("HASH TABLE\n");
@@ -100,7 +126,7 @@ int main()
     hash_table_print();
     hash_table_insert_person(&person2);
     hash_table_print();
-    hash_table_delete_person(&person1);
-    hash_table_delete_person(&person2);
-    hash_table_print();
+    person_t *tmp = hash_table_lookup("Berkay");
+    int idx = hash_table_find("Berkay");
+    printf("lookup person: %p, idx: %d\n", tmp, idx);
 }
