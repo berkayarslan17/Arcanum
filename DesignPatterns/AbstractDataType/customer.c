@@ -30,7 +30,7 @@ customer_t *customer_create(const char *p_name, const address_t *p_address)
     return p_customer;
 }
 
-void customer_init(customer_t *p_customer, const char *p_name, const address_t*p_address)
+void customer_init(customer_t *p_customer, const char *p_name, const address_t *p_address)
 {
     assert(p_customer);
     assert(p_name);
